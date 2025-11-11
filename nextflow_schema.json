@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/nf-core/gapseqflow/master/nextflow_schema.json",
-    "title": "nf-core/gapseqflow pipeline parameters",
+    "$id": "https://raw.githubusercontent.com/barbarahelena/gapseqflow/master/nextflow_schema.json",
+    "title": "gapseqflow pipeline parameters",
     "description": "A workflow for Gapseq",
     "type": "object",
     "definitions": {
@@ -157,6 +157,55 @@
                 }
             }
         },
+        "workflow_options": {
+            "title": "Workflow specific options",
+            "type": "object",
+            "fa_icon": "fab fa-acquisitions-incorporated",
+            "description": "The workflow specific options allow you to set the parameters for the pipeline.",
+            "help_text": "These options are specific to the pipeline and allow you to set the parameters for the pipeline. They are not common to all nf-core pipelines, but are specific to this pipeline.",
+            "properties": {
+                "bin_domain_classification": {
+                    "type": "boolean",
+                    "description": "Domain classification before binning.",
+                    "default": true,
+                    "fa_icon": "fas fa-globe",
+                    "help_text": "Use to enable domain classification before binning."
+                },
+                "gtdbtk_db_name:": {
+                    "type": "string",
+                    "description": "GTDB-Tk database name.",
+                    "fa_icon": "fas fa-database",
+                    "help_text": "Name of the GTDB-Tk database."
+                },
+                "gtdbtk_database:": {
+                    "type": "string",
+                    "description": "GTDB-Tk database to use for classification.",
+                    "fa_icon": "fas fa-database",
+                    "help_text": "Path to the GTDB-Tk database to use for classification, e.g. `--gtdbtk_database /path/to/gtdbtk/database`."
+                },
+                "contamination_threshold:": {
+                    "type": "number",
+                    "description": "Maximum contamination for dereplication.",
+                    "default": 5.0,
+                    "fa_icon": "fas fa-filter",
+                    "help_text": "Use to set an upper-limit for the contamination threshold for dereplication. Should be a number e.g. `--contamination_threshold 5`"
+                },
+                "completeness_threshold:": {
+                    "type": "number",
+                    "description": "Minimum completeness for dereplication.",
+                    "default": 80.0,
+                    "fa_icon": "far fa-filter",
+                    "help_text": "Use to set a lower-limit for the completeness threshold for dereplication. Should be a number e.g. `--completeness_threshold 0.80`"
+                },
+                "derep_minimum_identity:": {
+                    "type": "number",
+                    "description": "Minimum identity for dereplication.",
+                    "default": 0.95,
+                    "fa_icon": "fas fa-filter",
+                    "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
+                }                
+            }
+        },
         "generic_options": {
             "title": "Generic options",
             "type": "object",
@@ -288,6 +337,9 @@
         },
         {
             "$ref": "#/definitions/max_job_request_options"
+        },
+        {
+            "$ref": "#/definitions/workflow_options"
         },
         {
             "$ref": "#/definitions/generic_options"

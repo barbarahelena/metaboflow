@@ -160,20 +160,45 @@ def paramsSummaryMultiqc(summary_params) {
 //
 // nf-core logo
 //
-def nfCoreLogo(monochrome_logs=true) {
+def nfCoreLogo(monochrome_logs = true) {
     Map colors = logColours(monochrome_logs)
-    String.format(
-        """\n
-        ${dashedLine(monochrome_logs)}
-                                                ${colors.green},--.${colors.black}/${colors.green},-.${colors.reset}
-        ${colors.blue}        ___     __   __   __   ___     ${colors.green}/,-._.--~\'${colors.reset}
-        ${colors.blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${colors.yellow}}  {${colors.reset}
-        ${colors.blue}  | \\| |       \\__, \\__/ |  \\ |___     ${colors.green}\\`-._,-`-,${colors.reset}
-                                                ${colors.green}`._,._,\'${colors.reset}
-        ${colors.purple}  ${workflow.manifest.name} ${getWorkflowVersion()}${colors.reset}
-        ${dashedLine(monochrome_logs)}
-        """.stripIndent()
-    )
+    
+    // Simpele groene naar geel gradient via kleurcodes (groen → geel)
+    def gradientColors = [
+        "\u001B[38;5;33m",  // donkerblauw
+        "\u001B[38;5;39m",
+        "\u001B[38;5;45m",
+        "\u001B[38;5;99m",
+        "\u001B[38;5;105m",
+        "\u001B[38;5;141m"  // paars
+    ]
+    
+    def lines = [
+        "   ____    _    ____  ____  _____ ___  _____ _     _____        __   ",
+        "  / ___|  / \\  |  _ \\/ ___|| ____/ _ \\|  ___| |   / _ \\ \\      / /   ",
+        " | |  _  / _ \\ | |_) \\___ \\|  _|| | | | |_  | |  | | | \\ \\ /\\ / /    ",
+        " | |_| |/ ___ \\|  __/ ___) | |__| |_| |  _| | |__| |_| |\\ V  V /     ",
+        "  \\____/_/   \\_\\_|   |____/|_____\\__\\_\\_|   |_____\\___/  \\_/\\_/      ",
+        "                                                                      "
+    ]
+    
+    StringBuilder logoBuilder = new StringBuilder()
+    logoBuilder.append(dashedLine(monochrome_logs)).append("\n")
+    
+    lines.eachWithIndex { line, idx ->
+        def color = monochrome_logs ? "" : gradientColors[idx % gradientColors.size()]
+        def reset = monochrome_logs ? "" : "\u001B[0m"
+        logoBuilder.append(color).append(line).append(reset).append("\n")
+    }
+    
+    logoBuilder.append("\n")
+    logoBuilder.append(monochrome_logs ? "GAPSEQFLOW: Gapseq pipeline in nextflow\n" :
+                                         "\u001B[38;5;184mGAPSEQFLOW: Gapseq pipeline in nextflow\u001B[0m\n")
+    logoBuilder.append(monochrome_logs ? "${workflow.manifest.name} ${getWorkflowVersion()}\n" :
+                                         "\u001B[38;5;141m${workflow.manifest.name} ${getWorkflowVersion()}\u001B[0m\n")
+    logoBuilder.append(dashedLine(monochrome_logs)).append("\n")
+    
+    return logoBuilder.toString()
 }
 
 //
@@ -181,7 +206,7 @@ def nfCoreLogo(monochrome_logs=true) {
 //
 def dashedLine(monochrome_logs=true) {
     Map colors = logColours(monochrome_logs)
-    return "-${colors.dim}----------------------------------------------------${colors.reset}-"
+    return "-${colors.dim}------------------------------------------------------------------------${colors.reset}-"
 }
 
 //

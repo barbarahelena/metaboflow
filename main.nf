@@ -1,11 +1,9 @@
 #!/usr/bin/env nextflow
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    nf-core/gapseqflow
+    gapseqflow
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Github : https://github.com/nf-core/gapseqflow
-    Website: https://nf-co.re/gapseqflow
-    Slack  : https://nfcore.slack.com/channels/gapseqflow
+    Github : https://github.com/barbarahelena/gapseqflow
 ----------------------------------------------------------------------------------------
 */
 
@@ -17,22 +15,16 @@ nextflow.enable.dsl = 2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { GAPSEQFLOW  } from './workflows/gapseqflow'
-include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_gapseqflow_pipeline'
-include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_gapseqflow_pipeline'
-
-include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_gapseqflow_pipeline'
+include { GAPSEQ  } from './workflows/gapseq'
+include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_gapseqflow_pipeline'
+include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_gapseqflow_pipeline'
+include { getGenomeAttribute      } from './subworkflows/local/utils_gapseqflow_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     GENOME PARAMETER VALUES
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
-// TODO nf-core: Remove this line if you don't need a FASTA file
-//   This is an example of how to use getGenomeAttribute() to fetch parameters
-//   from igenomes.config using `--genome`
-params.fasta = getGenomeAttribute('fasta')
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -43,7 +35,7 @@ params.fasta = getGenomeAttribute('fasta')
 //
 // WORKFLOW: Run main analysis pipeline depending on type of input
 //
-workflow NFCORE_GAPSEQFLOW {
+workflow GAPSEQFLOW {
 
     take:
     samplesheet // channel: samplesheet read in from --input
@@ -53,12 +45,12 @@ workflow NFCORE_GAPSEQFLOW {
     //
     // WORKFLOW: Run pipeline
     //
-    GAPSEQFLOW (
+    GAPSEQ (
         samplesheet
     )
 
     emit:
-    multiqc_report = GAPSEQFLOW.out.multiqc_report // channel: /path/to/multiqc_report.html
+    multiqc_report = GAPSEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
 
 }
 /*
@@ -87,7 +79,7 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    NFCORE_GAPSEQFLOW (
+    GAPSEQFLOW (
         PIPELINE_INITIALISATION.out.samplesheet
     )
 
@@ -101,7 +93,7 @@ workflow {
         params.outdir,
         params.monochrome_logs,
         params.hook_url,
-        NFCORE_GAPSEQFLOW.out.multiqc_report
+        GAPSEQFLOW.out.multiqc_report
     )
 }
 
