@@ -6,10 +6,12 @@ process GAPSEQ_ANNOTATE {
     container "biocontainers/gapseq:1.4.0--h9ee0642_1"
 
     input:
-    tuple val(meta), path(bins)
+    tuple val(meta), path(bin)
 
     output:
-    tuple val(meta), path("mags_cluster_${prefix}/*"), emit: annotated_bins
+    tuple val(meta), path("*-Pathways.tbl")          , emit: pathways
+    tuple val(meta), path("*-Reactions.tbl")         , emit: reactions
+    tuple val(meta), path("*-Transporter.tbl")       , emit: transporters
     path "versions.yml"                              , emit: versions
 
     when:
@@ -17,13 +19,10 @@ process GAPSEQ_ANNOTATE {
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
 
     """
-    mkdir -p mags_cluster/
-    cp ${bins} mags_cluster/
-    
-    gapseq annotate ${args} --input mags_cluster/ --output mags_cluster_${prefix}/
+    # Run gapseq find to predict pathways and reactions
+    gapseq find -p all -t ${args} ${bin}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -32,12 +31,13 @@ process GAPSEQ_ANNOTATE {
     """
 
     stub:
-    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
 
     """
-    mkdir -p mags_cluster_${prefix}/
-    touch mags_cluster_${prefix}/annotated_bins.txt
+    mkdir -p gapseq_annotated_${prefix}/
+    touch gapseq_annotated_${prefix}/${prefix}-Pathways.tbl
+    touch gapseq_annotated_${prefix}/${prefix}-Reactions.tbl
+    touch gapseq_annotated_${prefix}/${prefix}-Transporter.tbl
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

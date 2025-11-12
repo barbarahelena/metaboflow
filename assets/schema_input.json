@@ -7,26 +7,64 @@
     "items": {
         "type": "object",
         "properties": {
-            "sample": {
+            "subject_id": {
                 "type": "string",
                 "pattern": "^\\S+$",
-                "errorMessage": "Sample name must be provided and cannot contain spaces",
+                "errorMessage": "Subject ID must be provided and cannot contain spaces",
                 "meta": ["id"]
             },
-            "assembler": {
+            "sample_ids": {
                 "type": "string",
-                "enum": ["MEGAHIT", "SPAdes"],
-                "errorMessage": "Assembler must be either 'MEGAHIT' or 'SPAdes'",
-                "meta": ["assembler"]
+                "pattern": "^[^,]+$",
+                "errorMessage": "Sample IDs must be provided and cannot contain commas",
+                "meta": ["sample_ids"]
             },
-            "fasta": {
+            "bin_id": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Bin ID must be provided and cannot contain spaces",
+                "meta": ["bin_id"]
+            },
+            "bin_fasta": {
                 "type": "string",
                 "format": "file-path",
                 "exists": true,
                 "pattern": "^\\S+\\.f(ast)?a$",
-                "errorMessage": "FASTA file must be provided, cannot contain spaces and must have extension '.fa' or '.fasta'"
+                "errorMessage": "Bin FASTA file must be provided, cannot contain spaces and must have extension '.fa' or '.fasta'"
+            },
+            "assembly": {
+                "type": "string",
+                "format": "file-path",
+                "exists": true,
+                "pattern": "^\\S+\\.(fa|fasta|fa\\.gz|fasta\\.gz)$",
+                "errorMessage": "Assembly file must be provided, cannot contain spaces and must have extension '.fa', '.fasta', '.fa.gz', or '.fasta.gz'"
+            },
+            "fastq1": {
+                "type": "string",
+                "format": "file-path",
+                "exists": true,
+                "pattern": "^\\S+\\.(fq|fastq|fq\\.gz|fastq\\.gz)$",
+                "errorMessage": "First FASTQ file must be provided, cannot contain spaces and must have extension '.fq', '.fastq', '.fq.gz', or '.fastq.gz'"
+            },
+            "fastq2": {
+                "type": "string",
+                "format": "file-path",
+                "exists": true,
+                "pattern": "^\\S+\\.(fq|fastq|fq\\.gz|fastq\\.gz)$",
+                "errorMessage": "Second FASTQ file must be provided, cannot contain spaces and must have extension '.fq', '.fastq', '.fq.gz', or '.fastq.gz'"
+            },
+            "checkm_completeness": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "errorMessage": "CheckM completeness must be a number between 0 and 100"
+            },
+            "checkm_contamination": {
+                "type": "number",
+                "minimum": 0,
+                "errorMessage": "CheckM contamination must be a number greater than or equal to 0"
             }
         },
-        "required": ["sample", "fasta"]
+        "required": ["subject_id", "sample_ids", "bin_id", "bin_fasta", "assembly", "fastq1", "fastq2", "checkm_completeness", "checkm_contamination"]
     }
 }

@@ -1,14 +1,14 @@
 process GTDBTK_CLASSIFYWF {
-    tag  "${meta.id}"
-    label 'process_medium'
+    tag "${meta.id}"
+    label 'process_high_memory'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'apptainer' && !task.ext.singularity_pull_docker_container ?
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/gtdbtk:2.4.1--pyhdfd78af_1':
         'biocontainers/gtdbtk:2.4.1--pyhdfd78af_1' }"
 
     input:
-    tuple val(meta)   , path(bins)
+    tuple val(meta)   , path("bins/*")
     tuple val(db_name), path(db)
     val use_pplacer_scratch_dir
     path mash_db
@@ -41,28 +41,9 @@ process GTDBTK_CLASSIFYWF {
         mkdir pplacer_tmp
     fi
 
-    # Debug: Check what we received as input
-    echo "DEBUG: bins input path: ${bins}"
-    echo "DEBUG: Current directory contents:"
-    ls -la .
-    echo "DEBUG: Looking for genome directory at: ${bins}/dereplicated_genomes"
-    
-    if [ -d "${bins}/dereplicated_genomes" ]; then
-        echo "DEBUG: Found dereplicated_genomes directory"
-        echo "DEBUG: Contents of dereplicated_genomes:"
-        ls -la "${bins}/dereplicated_genomes/"
-        echo "DEBUG: Number of .fa files:"
-        ls "${bins}/dereplicated_genomes/"*.fa 2>/dev/null | wc -l
-    else
-        echo "ERROR: Cannot find ${bins}/dereplicated_genomes directory"
-        echo "DEBUG: Contents of ${bins}:"
-        ls -la "${bins}/" 2>/dev/null || echo "Cannot access ${bins}/"
-    fi
-
     gtdbtk classify_wf \\
         ${args} \\
-        --genome_dir ${bins}/dereplicated_genomes \\
-        --extension fa \\
+        --genome_dir bins \\
         --prefix "${prefix}" \\
         --out_dir ${prefix} \\
         --cpus ${task.cpus} \\

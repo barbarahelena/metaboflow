@@ -6,7 +6,7 @@ process GAPSEQ_MODEL {
     container "biocontainers/gapseq:1.4.0--h9ee0642_1"
 
     input:
-    tuple val(meta), path(bam)
+    tuple val(meta), path(bin), path(pathways), path(reactions), path(transporters)
 
     output:
     tuple val(meta), path("*.bam"), emit: bam
@@ -20,13 +20,8 @@ process GAPSEQ_MODEL {
     def prefix = task.ext.prefix ?: "${meta.id}"
 
     """
-    samtools \\
-        sort \\
-        $args \\
-        -@ $task.cpus \\
-        -o ${prefix}.bam \\
-        -T $prefix \\
-        $bam
+    gapseq draft -r $reactions -t $transporters -p $pathways -c $bin
+    gapseq fill -m ${bin}-draft.RDS -c ${bin}-rxnWeights.RDS -g ${bin}-rxnXgenes.RDS -n TSBmed.csv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
