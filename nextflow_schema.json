@@ -164,46 +164,20 @@
             "description": "The workflow specific options allow you to set the parameters for the pipeline.",
             "help_text": "These options are specific to the pipeline and allow you to set the parameters for the pipeline. They are not common to all nf-core pipelines, but are specific to this pipeline.",
             "properties": {
-                "bin_domain_classification": {
-                    "type": "boolean",
-                    "description": "Domain classification before binning.",
-                    "default": true,
-                    "fa_icon": "fas fa-globe",
-                    "help_text": "Use to enable domain classification before binning."
-                },
-                "gtdbtk_db_name:": {
+                "dram_db": {
                     "type": "string",
-                    "description": "GTDB-Tk database name.",
+                    "format": "directory-path",
+                    "description": "Path to DRAM database directory.",
                     "fa_icon": "fas fa-database",
-                    "help_text": "Name of the GTDB-Tk database."
+                    "help_text": "Path to the directory containing all DRAM databases (kegg, uniref, pfam, etc.). This should be the parent directory containing all database subdirectories."
                 },
-                "gtdbtk_database:": {
+                "bin_depths": {
                     "type": "string",
-                    "description": "GTDB-Tk database to use for classification.",
+                    "format": "file-path",
+                    "description": "Path to bin table with depths per sample.",
                     "fa_icon": "fas fa-database",
-                    "help_text": "Path to the GTDB-Tk database to use for classification, e.g. `--gtdbtk_database /path/to/gtdbtk/database`."
-                },
-                "contamination_threshold:": {
-                    "type": "number",
-                    "description": "Maximum contamination for dereplication.",
-                    "default": 5.0,
-                    "fa_icon": "fas fa-filter",
-                    "help_text": "Use to set an upper-limit for the contamination threshold for dereplication. Should be a number e.g. `--contamination_threshold 5`"
-                },
-                "completeness_threshold:": {
-                    "type": "number",
-                    "description": "Minimum completeness for dereplication.",
-                    "default": 80.0,
-                    "fa_icon": "far fa-filter",
-                    "help_text": "Use to set a lower-limit for the completeness threshold for dereplication. Should be a number e.g. `--completeness_threshold 0.80`"
-                },
-                "derep_minimum_identity:": {
-                    "type": "number",
-                    "description": "Minimum identity for dereplication.",
-                    "default": 0.95,
-                    "fa_icon": "fas fa-filter",
-                    "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
-                }                
+                    "help_text": "Path to the table with all bins and their depths per sample."
+                }
             }
         },
         "generic_options": {
