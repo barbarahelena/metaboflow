@@ -9,7 +9,6 @@ include { GUTSMASH_COLLAPSE                     } from '../modules/local/gutsmas
 include { GUTSMASH_PROCESS                      } from '../modules/local/gutsmash/process'
 include { DRAM_ANNOTATE                         } from '../modules/local/dram/dram'
 include { DRAM_DB                               } from '../modules/local/dram/db'
-include { METABOLIC_G                           } from '../modules/local/metabolic_g'
 include { MULTIQC                               } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                      } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc                  } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -22,7 +21,7 @@ include { methodsDescriptionText                } from '../subworkflows/local/ut
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-workflow GAPSEQ {
+workflow METABO {
 
     take:
     ch_samplesheet // channel: samplesheet read in from --input

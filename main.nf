@@ -1,9 +1,9 @@
 #!/usr/bin/env nextflow
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    gapseqflow
+    metaboflow
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Github : https://github.com/barbarahelena/gapseqflow
+    Github : https://github.com/barbarahelena/metaboflow
 ----------------------------------------------------------------------------------------
 */
 
@@ -15,7 +15,7 @@ nextflow.enable.dsl = 2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { GAPSEQ  } from './workflows/gapseq'
+include { METABO  } from './workflows/metabo'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_gapseqflow_pipeline'
 include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_gapseqflow_pipeline'
 include { getGenomeAttribute      } from './subworkflows/local/utils_gapseqflow_pipeline'
@@ -35,7 +35,7 @@ include { getGenomeAttribute      } from './subworkflows/local/utils_gapseqflow_
 //
 // WORKFLOW: Run main analysis pipeline depending on type of input
 //
-workflow GAPSEQFLOW {
+workflow METABOFLOW {
 
     take:
     samplesheet // channel: samplesheet read in from --input
@@ -45,12 +45,12 @@ workflow GAPSEQFLOW {
     //
     // WORKFLOW: Run pipeline
     //
-    GAPSEQ (
+    METABO (
         samplesheet
     )
 
     emit:
-    multiqc_report = GAPSEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
+    multiqc_report = METABO.out.multiqc_report // channel: /path/to/multiqc_report.html
 
 }
 /*
@@ -79,7 +79,7 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    GAPSEQFLOW (
+    METABOFLOW (
         PIPELINE_INITIALISATION.out.samplesheet
     )
 
@@ -93,7 +93,7 @@ workflow {
         params.outdir,
         params.monochrome_logs,
         params.hook_url,
-        GAPSEQFLOW.out.multiqc_report
+        METABOFLOW.out.multiqc_report
     )
 }
 

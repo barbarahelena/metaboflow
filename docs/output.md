@@ -1,4 +1,4 @@
-# nf-core/gapseqflow: Output
+# metaboflow: Output
 
 ## Introduction
 

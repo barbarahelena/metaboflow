@@ -174,12 +174,11 @@ def nfCoreLogo(monochrome_logs = true) {
     ]
     
     def lines = [
-        "   ____    _    ____  ____  _____ ___  _____ _     _____        __   ",
-        "  / ___|  / \\  |  _ \\/ ___|| ____/ _ \\|  ___| |   / _ \\ \\      / /   ",
-        " | |  _  / _ \\ | |_) \\___ \\|  _|| | | | |_  | |  | | | \\ \\ /\\ / /    ",
-        " | |_| |/ ___ \\|  __/ ___) | |__| |_| |  _| | |__| |_| |\\ V  V /     ",
-        "  \\____/_/   \\_\\_|   |____/|_____\\__\\_\\_|   |_____\\___/  \\_/\\_/      ",
-        "                                                                      "
+ "______  ___    _____       ______       _____________                ";
+"___   |/  /______  /______ ___  /__________  __/__  /________      __";
+"__  /|_/ /_  _ \\  __/  __ `/_  __ \\  __ \\_  /_ __  /_  __ \\_ | /| / /";
+"_  /  / / /  __/ /_ / /_/ /_  /_/ / /_/ /  __/ _  / / /_/ /_ |/ |/ / ";
+"/_/  /_/  \\___/\\__/ \\__,_/ /_.___/\\____//_/    /_/  \\____/____/|__/  ";
     ]
     
     StringBuilder logoBuilder = new StringBuilder()
@@ -192,8 +191,8 @@ def nfCoreLogo(monochrome_logs = true) {
     }
     
     logoBuilder.append("\n")
-    logoBuilder.append(monochrome_logs ? "GAPSEQFLOW: Gapseq pipeline in nextflow\n" :
-                                         "\u001B[38;5;184mGAPSEQFLOW: Gapseq pipeline in nextflow\u001B[0m\n")
+    logoBuilder.append(monochrome_logs ? "METABOFLOW: metabolic profiling in nextflow\n" :
+                                         "\u001B[38;5;184mMETABOFLOW: Workflow for metabolic profiling in nextflow\u001B[0m\n")
     logoBuilder.append(monochrome_logs ? "${workflow.manifest.name} ${getWorkflowVersion()}\n" :
                                          "\u001B[38;5;141m${workflow.manifest.name} ${getWorkflowVersion()}\u001B[0m\n")
     logoBuilder.append(dashedLine(monochrome_logs)).append("\n")
