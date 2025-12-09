@@ -32,8 +32,8 @@ First, prepare a samplesheet with your input data that looks as follows:
 `samplesheet.csv`:
 
 ```csv
-sample,fasta
-sample1,sample1_contigs.fasta
+bin_id,bin_fasta,checkm_completeness,checkm_contamination
+bin1,/path/to/bin1.fasta,95.0,2.0
 ```
 Each row represents a bin.
 
