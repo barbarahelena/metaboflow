@@ -27,44 +27,23 @@
             },
             "bin_fasta": {
                 "type": "string",
-                "format": "file-path",
-                "exists": true,
-                "pattern": "^\\S+\\.f(ast)?a$",
-                "errorMessage": "Bin FASTA file must be provided, cannot contain spaces and must have extension '.fa' or '.fasta'"
-            },
-            "assembly": {
-                "type": "string",
-                "format": "file-path",
-                "exists": true,
-                "pattern": "^\\S+\\.(fa|fasta|fa\\.gz|fasta\\.gz)$",
-                "errorMessage": "Assembly file must be provided, cannot contain spaces and must have extension '.fa', '.fasta', '.fa.gz', or '.fasta.gz'"
-            },
-            "fastq1": {
-                "type": "string",
-                "format": "file-path",
-                "exists": true,
-                "pattern": "^\\S+\\.(fq|fastq|fq\\.gz|fastq\\.gz)$",
-                "errorMessage": "First FASTQ file must be provided, cannot contain spaces and must have extension '.fq', '.fastq', '.fq.gz', or '.fastq.gz'"
-            },
-            "fastq2": {
-                "type": "string",
-                "format": "file-path",
-                "exists": true,
-                "pattern": "^\\S+\\.(fq|fastq|fq\\.gz|fastq\\.gz)$",
-                "errorMessage": "Second FASTQ file must be provided, cannot contain spaces and must have extension '.fq', '.fastq', '.fq.gz', or '.fastq.gz'"
+                "pattern": "^\\S+\\.fasta$|^\\S+\\.fa$|^\\S+\\.fna$",
+                "errorMessage": "Bin FASTA file path must be provided and end with .fasta, .fa, or .fna"
             },
             "checkm_completeness": {
                 "type": "number",
                 "minimum": 0,
                 "maximum": 100,
-                "errorMessage": "CheckM completeness must be a number between 0 and 100"
+                "errorMessage": "CheckM completeness must be a number between 0 and 100",
+                "meta": ["checkm_completeness"]
             },
             "checkm_contamination": {
                 "type": "number",
                 "minimum": 0,
-                "errorMessage": "CheckM contamination must be a number greater than or equal to 0"
+                "errorMessage": "CheckM contamination must be a number greater than or equal to 0",
+                "meta": ["checkm_contamination"]
             }
         },
-        "required": ["subject_id", "sample_ids", "bin_id", "bin_fasta", "assembly", "fastq1", "fastq2", "checkm_completeness", "checkm_contamination"]
+        "required": ["subject_id", "sample_ids", "bin_id", "bin_fasta", "checkm_completeness", "checkm_contamination"]
     }
 }
