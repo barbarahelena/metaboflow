@@ -3,9 +3,13 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { GUNZIP                                } from '../modules/nf-core/gunzip/main'
-include { GAPSEQ_ANNOTATE                       } from '../modules/local/gapseq/annotate' 
-include { GAPSEQ_PROCESS                        } from '../modules/local/gapseq/process'   
+include { GAPSEQ_ANNOTATE                       } from '../modules/local/gapseq/annotate'
+include { GUTSMASH_GUTSMASH                     } from '../modules/local/gutsmash/gutsmash'
+include { GUTSMASH_COLLAPSE                     } from '../modules/local/gutsmash/collapse'
+include { GUTSMASH_PROCESS                      } from '../modules/local/gutsmash/process'
+include { DRAM_ANNOTATE                         } from '../modules/local/dram/dram'
+include { DRAM_DB                               } from '../modules/local/dram/db'
+include { METABOLIC_G                           } from '../modules/local/metabolic_g'
 include { MULTIQC                               } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                      } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc                  } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -25,27 +29,41 @@ workflow GAPSEQ {
 
     main:
 
-    ch_versions = Channel.empty()
-    ch_multiqc_files = Channel.empty()
+    ch_versions = channel.empty()
+    ch_multiqc_files = channel.empty()
 
-    // Extract gunzipped bins for downstream processing
-    ch_bins = ch_samplesheet
-            .map { meta, bin_fasta, assembly, fastq1, fastq2, checkm_completeness, checkm_contamination -> 
-                tuple( meta, bin_fasta ) 
-            }
 
     // 
     // MODULE: GAPSEQ for annotation
     // 
-    GAPSEQ_ANNOTATE ( ch_bins )
-    ch_versions = ch_versions.mix(GAPSEQ_ANNOTATE.out.versions)
-    ch_results_pathways = ch_bins.combine(GAPSEQ_ANNOTATE.out.pathways)
+    // GAPSEQ_ANNOTATE ( ch_bins )
+    // ch_versions = ch_versions.mix(GAPSEQ_ANNOTATE.out.versions)
 
-    //
-    // MODULE: Merge annotation into existing results
-    //
-    GAPSEQ_PROCESS( ch_results_pathways )
-    
+    // 
+    // MODULE: GUTSMASH for annotation
+    // 
+    GUTSMASH_GUTSMASH ( ch_samplesheet )
+    ch_versions = ch_versions.mix(GUTSMASH_GUTSMASH.out.versions)
+
+    GUTSMASH_PROCESS ( GUTSMASH_GUTSMASH.out.regions_js )
+    ch_versions = ch_versions.mix(GUTSMASH_PROCESS.out.versions)
+
+    GUTSMASH_COLLAPSE ( GUTSMASH_PROCESS.out.tsv.collect(), params.bin_depths )
+    ch_versions = ch_versions.mix(GUTSMASH_COLLAPSE.out.versions)
+
+    // 
+    // MODULE: DRAM for annotation
+    // 
+    if (!params.dram_db) {
+        DRAM_DB ()
+        dram_db = DRAM_DB.out.databases
+        ch_versions = ch_versions.mix(DRAM_DB.out.versions)
+    } else {
+        dram_db = params.dram_db
+    }
+    DRAM_ANNOTATE ( ch_samplesheet, dram_db )
+    ch_versions = ch_versions.mix(DRAM_ANNOTATE.out.versions)
+
     //
     // Collate and save software versions
     //
@@ -60,23 +78,23 @@ workflow GAPSEQ {
     //
     // MODULE: MultiQC
     //
-    ch_multiqc_config        = Channel.fromPath(
+    ch_multiqc_config        = channel.fromPath(
         "$projectDir/assets/multiqc_config.yml", checkIfExists: true)
     ch_multiqc_custom_config = params.multiqc_config ?
-        Channel.fromPath(params.multiqc_config, checkIfExists: true) :
-        Channel.empty()
+        channel.fromPath(params.multiqc_config, checkIfExists: true) :
+        channel.empty()
     ch_multiqc_logo          = params.multiqc_logo ?
-        Channel.fromPath(params.multiqc_logo, checkIfExists: true) :
-        Channel.empty()
+        channel.fromPath(params.multiqc_logo, checkIfExists: true) :
+        channel.empty()
 
     summary_params      = paramsSummaryMap(
         workflow, parameters_schema: "nextflow_schema.json")
-    ch_workflow_summary = Channel.value(paramsSummaryMultiqc(summary_params))
+    ch_workflow_summary = channel.value(paramsSummaryMultiqc(summary_params))
 
     ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
         file(params.multiqc_methods_description, checkIfExists: true) :
         file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
-    ch_methods_description                = Channel.value(
+    ch_methods_description                = channel.value(
         methodsDescriptionText(ch_multiqc_custom_methods_description))
 
     ch_multiqc_files = ch_multiqc_files.mix(
