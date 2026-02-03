@@ -1,0 +1,3 @@
+bin_id,bin_fasta,checkm_completeness,checkm_contamination
+bin_001,https://raw.githubusercontent.com/barbarahelena/metaboflow/master/assets/bin_001.fa,81.32,5.29
+bin_002,https://raw.githubusercontent.com/barbarahelena/metaboflow/master/assets/bin_002.fa,97.34,36.59

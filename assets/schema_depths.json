@@ -1,0 +1,31 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "https://raw.githubusercontent.com/barbarahelena/metaboflow/master/assets/schema_depths.json",
+    "title": "metaboflow pipeline - depths input schema",
+    "description": "Schema for the sample depths samplesheet",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "bin_id": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Bin ID must be provided and cannot contain spaces",
+                "meta": ["bin_id"]
+            },
+            "sample": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Sample ID must be provided and cannot contain spaces",
+                "meta": ["sample_id"]
+            },
+            "depth": {
+                "type": "number",
+                "minimum": 0,
+                "errorMessage": "Depth must be a number greater than or equal to 0",
+                "meta": ["depth"]
+            }
+        },
+        "required": ["bin_id", "sample", "depth"]
+    }
+}
