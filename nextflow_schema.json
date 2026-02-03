@@ -1,8 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/barbarahelena/gapseqflow/master/nextflow_schema.json",
-    "title": "gapseqflow pipeline parameters",
-    "description": "A workflow for Gapseq",
+    "$id": "https://raw.githubusercontent.com/barbarahelena/metaboflow/master/nextflow_schema.json",
+    "title": "metaboflow pipeline parameters",
+    "description": "A workflow for metabolic pathway prediction from metagenomic assemblies using Gutsmash, GapSeq and DRAM.",
     "type": "object",
     "definitions": {
         "input_output_options": {
@@ -20,7 +20,18 @@
                     "mimetype": "text/csv",
                     "pattern": "^\\S+\\.csv$",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re/gapseqflow/usage#samplesheet-input).",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://github.com/barbarahelena/metaboflow/usage#samplesheet-input).",
+                    "fa_icon": "fas fa-file-csv"
+                },
+                "depths": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "schema": "assets/schema_depths.json",
+                    "mimetype": "text/csv",
+                    "pattern": "^\\S+\\.csv$",
+                    "description": "Path to comma-separated file containing information about the sample depths.",
+                    "help_text": "You will need to create a design file with information about the sample depths in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://github.com/barbarahelena/metaboflow/usage#samplesheet-input).",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "outdir": {
@@ -171,12 +182,26 @@
                     "fa_icon": "fas fa-database",
                     "help_text": "Path to the directory containing all DRAM databases (kegg, uniref, pfam, etc.). This should be the parent directory containing all database subdirectories."
                 },
-                "bin_depths": {
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "Path to bin table with depths per sample.",
-                    "fa_icon": "fas fa-database",
-                    "help_text": "Path to the table with all bins and their depths per sample."
+                "skip_gapseq": {
+                    "type": "boolean",
+                    "description": "Skip the GapSeq pathway prediction step.",
+                    "fa_icon": "fas fa-forward",
+                    "default": true,
+                    "help_text": "If set to true, the GapSeq pathway prediction step will be skipped. This can be useful if you only want to run Gutsmash and DRAM."
+                },
+                "skip_gutsmash": {
+                    "type": "boolean",
+                    "description": "Skip the Gutsmash pathway prediction step.",
+                    "fa_icon": "fas fa-forward",
+                    "default": false,
+                    "help_text": "If set to true, the Gutsmash pathway prediction step will be skipped. This can be useful if you only want to run GapSeq and DRAM."
+                },
+                "skip_dram": {
+                    "type": "boolean",
+                    "description": "Skip the DRAM annotation step.",
+                    "fa_icon": "fas fa-forward",
+                    "default": true,
+                    "help_text": "If set to true, the DRAM annotation step will be skipped. This can be useful if you only want to run Gutsmash and GapSeq."
                 }
             }
         },

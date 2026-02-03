@@ -5,7 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v0.1.0 - [date]
 
-Initial release of nf-core/gapseqflow, created with the [nf-core](https://nf-co.re/) template.
+Initial release of barbarahelena/metaboflow, created with the [nf-core](https://nf-co.re/) template.
 
 ### `Added`
 

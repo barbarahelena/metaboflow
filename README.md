@@ -25,7 +25,7 @@
 > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
 
-I recoommend to perform assembly of metagenomic data and binning prior to running metaboflow. You can use e.g. the [nf-core/mag](https://nf-co.re/mag) pipeline for this purpose. The resulting bins (fasta files) can then be used as input for metaboflow.
+I recommend to perform assembly of metagenomic data and binning prior to running metaboflow. You can use e.g. the [nf-core/mag](https://nf-co.re/mag) pipeline for this purpose. The resulting bins (fasta files) can then be used as input for metaboflow.
 
 First, prepare a samplesheet with your input data that looks as follows:
 

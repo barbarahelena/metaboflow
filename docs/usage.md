@@ -2,58 +2,72 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
+**metaboflow** is a bioinformatics pipeline for metabolic profiling of metagenomic bins. It takes assembled genomic bins (MAGs) as input and performs metabolic annotation using multiple tools including DRAM, gapseq, and gutSMASH. The pipeline integrates depth information across samples to generate population-level metabolic pathway profiles.
 
 ## Samplesheet input
 
-You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row as shown in the examples below.
+You will need to create a samplesheet with information about the bins you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 required columns, and a header row as shown in the examples below.
 
 ```bash
 --input '[path to samplesheet file]'
 ```
 
-### Multiple runs of the same sample
-
-The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will concatenate the raw reads before performing any downstream analysis. Below is an example for the same sample sequenced across 3 lanes:
-
-```csv title="samplesheet.csv"
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
-```
-
 ### Full samplesheet
 
-The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
-
-A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 6 samples, where `TREATMENT_REP3` has been sequenced twice.
+The samplesheet must contain the following columns:
 
 ```csv title="samplesheet.csv"
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
-CONTROL_REP3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
-TREATMENT_REP1,AEG588A4_S4_L003_R1_001.fastq.gz,
-TREATMENT_REP2,AEG588A5_S5_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
+bin_id,bin_fasta,checkm_completeness,checkm_contamination
+bin001,/path/to/bin001.fasta,95.5,2.1
+bin002,/path/to/bin002.fa,87.3,4.5
+bin003,/path/to/bin003.fna,92.1,1.8
 ```
 
-| Column    | Description                                                                                                                                                                            |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sample`  | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
-| `fastq_1` | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
-| `fastq_2` | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+| Column                    | Description                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `bin_id`                  | Unique bin identifier. Cannot contain spaces.                                                                            |
+| `bin_fasta`               | Full path to the bin FASTA file. Must have extension `.fasta`, `.fa`, or `.fna`.                                        |
+| `checkm_completeness`     | CheckM completeness score (0-100). Numeric value representing genome completeness percentage.                            |
+| `checkm_contamination`    | CheckM contamination score (≥0). Numeric value representing genome contamination percentage.                             |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+
+## Depth information input
+
+To generate population-level metabolic profiles, you need to provide depth information for each bin across samples. This is specified using the `--depths` parameter.
+
+```bash
+--depths '[path to depths file]'
+```
+
+The depths file should be a comma-separated file with the following structure:
+
+```csv title="depths.csv"
+bin_id,sample_id,depth
+bin001,sample1,45.3
+bin001,sample2,28.7
+bin001,sample3,52.1
+bin002,sample1,12.5
+bin002,sample2,18.9
+bin002,sample3,22.4
+```
+
+| Column      | Description                                                                      |
+| ----------- | -------------------------------------------------------------------------------- |
+| `bin_id`    | Bin identifier matching those in the main samplesheet.                           |
+| `sample_id` | Sample identifier. Cannot contain spaces.                                        |
+| `depth`     | Sequencing depth or abundance value for this bin in this sample (numeric value). |
 
 ## Running the pipeline
 
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run barbarahelena/metaboflow --input ./samplesheet.csv --outdir ./results --genome GRCh37 -profile docker
+nextflow run barbarahelena/metaboflow \
+    --input ./samplesheet.csv \
+    --depths ./depths.csv \
+    --outdir ./results \
+    -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
@@ -66,6 +80,8 @@ work                # Directory containing the nextflow working files
 .nextflow_log       # Log file from Nextflow
 # Other nextflow hidden files, eg. history of pipeline runs and old logs.
 ```
+
+### Using a parameters file
 
 If you wish to repeatedly use the same parameters for multiple runs, rather than specifying each flag in the command, you can specify these in a params file.
 
@@ -85,12 +101,33 @@ with `params.yaml` containing:
 
 ```yaml
 input: './samplesheet.csv'
+depths: './depths.csv'
 outdir: './results/'
-genome: 'GRCh37'
-<...>
 ```
 
 You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-co.re/launch).
+
+## Pipeline options
+
+### Annotation tools
+
+By default, the pipeline runs all three annotation tools: DRAM, gapseq, and gutSMASH. You can control which tools to run:
+
+```bash
+--skip_dram          # Skip DRAM annotation
+--skip_gapseq        # Skip gapseq annotation
+--skip_gutsmash      # Skip gutSMASH annotation
+```
+
+### DRAM database
+
+If you have a pre-downloaded DRAM database, you can specify its location:
+
+```bash
+--dram_db '/path/to/dram/database'
+```
+
+If not specified, the pipeline will download and prepare the DRAM database automatically (requires significant time and storage space).
 
 ### Updating the pipeline
 
@@ -106,9 +143,9 @@ It is a good idea to specify a pipeline version when running the pipeline on you
 
 First, go to the [metaboflow releases page](https://github.com/barbarahelena/metaboflow/releases) and find the latest pipeline version - numeric only (eg. `1.3.1`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.3.1`. Of course, you can switch to another version by changing the number after the `-r` flag.
 
-This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future. For example, at the bottom of the MultiQC reports.
+This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future.
 
-To further assist in reproducbility, you can use share and re-use [parameter files](#running-the-pipeline) to repeat pipeline runs with the same settings without having to write out a command with every single parameter.
+To further assist in reproducibility, you can use share and re-use [parameter files](#using-a-parameters-file) to repeat pipeline runs with the same settings without having to write out a command with every single parameter.
 
 :::tip
 If you wish to share such profile (such as upload as supplementary material for academic publications), make sure to NOT include cluster specific paths to files, nor institutional specific profiles.
@@ -130,12 +167,12 @@ Several generic profiles are bundled with the pipeline which instruct the pipeli
 We highly recommend the use of Docker or Singularity containers for full pipeline reproducibility, however when this is not possible, Conda is also supported.
 :::
 
-The pipeline also dynamically loads configurations from [https://github.com/nf-core/configs](https://github.com/barbarahelena/configs) when it runs, making multiple config profiles for various institutional clusters available at run time. For more information and to see if your system is available in these configs please see the [nf-core/configs documentation](https://github.com/nf-core/configs#documentation).
+The pipeline also dynamically loads configurations from [https://github.com/nf-core/configs](https://github.com/nf-core/configs) when it runs, making multiple config profiles for various institutional clusters available at run time. For more information and to see if your system is available in these configs please see the [nf-core/configs documentation](https://github.com/nf-core/configs#documentation).
 
 Note that multiple profiles can be loaded, for example: `-profile test,docker` - the order of arguments is important!
 They are loaded in sequence, so later profiles can overwrite earlier profiles.
 
-If `-profile` is not specified, the pipeline will run locally and expect all software to be installed and available on the `PATH`. This is _not_ recommended, since it can lead to different results on different machines dependent on the computer enviroment.
+If `-profile` is not specified, the pipeline will run locally and expect all software to be installed and available on the `PATH`. This is _not_ recommended, since it can lead to different results on different machines dependent on the computer environment.
 
 - `test`
   - A profile with a complete configuration for automated testing
@@ -171,7 +208,9 @@ Specify the path to a specific config file (this is a core Nextflow command). Se
 
 ### Resource requests
 
-Whilst the default requirements set within the pipeline will hopefully work for most people and with most input data, you may find that you want to customise the compute resources that the pipeline requests. Each step in the pipeline has a default set of requirements for number of CPUs, memory and time. 
+Whilst the default requirements set within the pipeline will hopefully work for most people and with most input data, you may find that you want to customise the compute resources that the pipeline requests. Each step in the pipeline has a default set of requirements for number of CPUs, memory and time. For most of the steps in the pipeline, if the job exits with any of the error codes specified [here](https://github.com/nf-core/rnaseq/blob/4c27ef5610c87db00c3c5a3eed10b1d161abf575/conf/base.config#L18) it will automatically be resubmitted with higher requests (2 x original, then 3 x original). If it still fails after the third attempt then the pipeline execution is stopped.
+
+To change the resource requests, please see the [max resources](https://nf-co.re/docs/usage/configuration#max-resources) and [tuning workflow resources](https://nf-co.re/docs/usage/configuration#tuning-workflow-resources) section of the nf-core website.
 
 ### nf-core/configs
 

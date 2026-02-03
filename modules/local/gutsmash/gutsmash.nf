@@ -1,6 +1,6 @@
 process GUTSMASH_GUTSMASH {
     tag "$meta.bin_id"
-    label 'process_medium'
+    label 'process_single'
 
     conda "bioconda::gutsmash=2.0.1"
     container "docker://barbarahelena/gutsmash:1.6"
@@ -9,18 +9,10 @@ process GUTSMASH_GUTSMASH {
     tuple val(meta), path(bin)
 
     output:
-    tuple val(meta), path("gutsmash_output_*/index.html")              , emit: html_report
-    tuple val(meta), path("gutsmash_output_*/*.gbk")                  , emit: genbank_files, optional: true
-    tuple val(meta), path("gutsmash_output_*/*.json")                 , emit: json_results, optional: true
-    tuple val(meta), path("gutsmash_output_*/regions.js")             , emit: regions_js, optional: true
-    tuple val(meta), path("gutsmash_output_*/knownclusterblast/")     , emit: knownclusterblast_dir, optional: true
-    tuple val(meta), path("gutsmash_output_*/knownclusterblastoutput.txt"), emit: txt, optional: true
-    tuple val(meta), path("gutsmash_output_*/*.zip")                  , emit: zip_results, optional: true
-    tuple val(meta), path("gutsmash_output_*/css/")                   , emit: css_dir, optional: true
-    tuple val(meta), path("gutsmash_output_*/images/")                , emit: images_dir, optional: true
-    tuple val(meta), path("gutsmash_output_*/js/")                    , emit: js_dir, optional: true
-    tuple val(meta), path("gutsmash_output_*/svg/")                   , emit: svg_dir, optional: true
-    path "versions.yml"                                                       , emit: versions
+    tuple val(meta), path("*/regions.js")                           , emit: regions_js, optional: true
+    tuple val(meta), path("*/knownclusterblast/")                   , emit: knownclusterblast_dir, optional: true
+    tuple val(meta), path("*/knownclusterblast/*output.txt")        , emit: txt, optional: true
+    path "versions.yml"                                             , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -30,16 +22,20 @@ process GUTSMASH_GUTSMASH {
     def prefix = task.ext.prefix ?: "${meta.bin_id}"
 
     """
-    # Run gutSMASH with minimal detection mode
     python3 /usr/share/gutsmash/run_gutsmash.py \\
-        --minimal \\
+        --taxon bacteria \\
         --cb-knownclusters \\
-        --enable-genefunctions \\
+        --pfam2go \\
+        --smcog-trees \\
         --genefinding-tool prodigal \\
-        --output-dir gutsmash_output_${prefix} \\
+        --output-dir ${prefix} \\
         --cpus ${task.cpus} \\
+        --debug \\
         ${args} \\
         ${bin}
+    
+    # Clean up HTML/CSS/SVG/images to save space (keep only regions.js and knownclusterblast)
+    rm -rf ${prefix}/index.html ${prefix}/css/ ${prefix}/svg/ ${prefix}/images/ ${prefix}/js/ 2>/dev/null || true
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -51,11 +47,11 @@ process GUTSMASH_GUTSMASH {
     def prefix = task.ext.prefix ?: "${meta.bin_id}"
 
     """
-    mkdir -p gutsmash_output_${prefix}
-    touch gutsmash_output_${prefix}/index.html
-    touch gutsmash_output_${prefix}/${prefix}.gbk
-    touch gutsmash_output_${prefix}/${prefix}_regions.json
-    touch gutsmash_output_${prefix}/regions.js
+    mkdir -p ${prefix}
+    touch ${prefix}/index.html
+    touch ${prefix}/${prefix}.gbk
+    touch ${prefix}/${prefix}_regions.json
+    touch ${prefix}/regions.js
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

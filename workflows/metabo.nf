@@ -5,15 +5,15 @@
 */
 include { GAPSEQ_ANNOTATE                       } from '../modules/local/gapseq/annotate'
 include { GUTSMASH_GUTSMASH                     } from '../modules/local/gutsmash/gutsmash'
-include { GUTSMASH_COLLAPSE                     } from '../modules/local/gutsmash/collapse'
+include { GUTSMASH_PERBIN                       } from '../modules/local/gutsmash/perbin'
 include { GUTSMASH_PROCESS                      } from '../modules/local/gutsmash/process'
+include { GUTSMASH_MERGE                        } from '../modules/local/gutsmash/merge'
 include { DRAM_ANNOTATE                         } from '../modules/local/dram/dram'
 include { DRAM_DB                               } from '../modules/local/dram/db'
-include { MULTIQC                               } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                      } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc                  } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText                } from '../subworkflows/local/utils_gapseqflow_pipeline'
+include { methodsDescriptionText                } from '../subworkflows/local/utils_metaboflow_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,96 +25,81 @@ workflow METABO {
 
     take:
     ch_samplesheet // channel: samplesheet read in from --input
+    ch_depths      // channel: depths read in from --depths
 
     main:
 
     ch_versions = channel.empty()
-    ch_multiqc_files = channel.empty()
-
 
     // 
     // MODULE: GAPSEQ for annotation
-    // 
-    // GAPSEQ_ANNOTATE ( ch_bins )
-    // ch_versions = ch_versions.mix(GAPSEQ_ANNOTATE.out.versions)
+    //
+    if(!params.skip_gapseq){
+        GAPSEQ_ANNOTATE ( ch_samplesheet )
+        ch_versions = ch_versions.mix(GAPSEQ_ANNOTATE.out.versions)
+    }
 
     // 
     // MODULE: GUTSMASH for annotation
     // 
-    GUTSMASH_GUTSMASH ( ch_samplesheet )
-    ch_versions = ch_versions.mix(GUTSMASH_GUTSMASH.out.versions)
+    if(!params.skip_gutsmash){
+        GUTSMASH_GUTSMASH ( ch_samplesheet )
+        ch_versions = ch_versions.mix(GUTSMASH_GUTSMASH.out.versions)
 
-    GUTSMASH_PROCESS ( GUTSMASH_GUTSMASH.out.regions_js )
-    ch_versions = ch_versions.mix(GUTSMASH_PROCESS.out.versions)
+        GUTSMASH_PROCESS(GUTSMASH_GUTSMASH.out.regions_js)
+        ch_versions = ch_versions.mix(GUTSMASH_PROCESS.out.versions)
 
-    GUTSMASH_COLLAPSE ( GUTSMASH_PROCESS.out.tsv.collect(), params.bin_depths )
-    ch_versions = ch_versions.mix(GUTSMASH_COLLAPSE.out.versions)
+        // Check if the TSV channel is empty
+        GUTSMASH_PROCESS.out.tsv
+            .ifEmpty { 
+                log.warn "WARNING: GUTSMASH_PROCESS.out.tsv is empty - no regions found or process failed"
+                return Channel.empty()
+            }
+            .map { meta, file -> [meta.bin_id, meta, file] }
+            .set { ch_regions_keyed }
 
-    // 
-    // MODULE: DRAM for annotation
-    // 
-    if (!params.dram_db) {
-        DRAM_DB ()
-        dram_db = DRAM_DB.out.databases
-        ch_versions = ch_versions.mix(DRAM_DB.out.versions)
-    } else {
-        dram_db = params.dram_db
-    }
-    DRAM_ANNOTATE ( ch_samplesheet, dram_db )
-    ch_versions = ch_versions.mix(DRAM_ANNOTATE.out.versions)
+        // Key and group depths by bin_id
+        ch_depths
+            .map { it[0] }  // ← FIX: Extract meta from wrapping list
+            .map { meta -> [meta.bin_id, meta] }
+            .groupTuple()
+            .set { ch_depths_grouped }
 
-    //
-    // Collate and save software versions
-    //
-    softwareVersionsToYAML(ch_versions)
-        .collectFile(
-            storeDir: "${params.outdir}/pipeline_info",
-            name: 'nf_core_pipeline_software_mqc_versions.yml',
-            sort: true,
-            newLine: true
-        ).set { ch_collated_versions }
+        // Join regions with depths by bin_id
+        ch_regions_keyed
+            .join(ch_depths_grouped, by: 0)
+            .map { bin_id, regions_meta, regions_file, depth_list ->
+                def combined_meta = regions_meta + [depths: depth_list]
+                [combined_meta, depth_list, regions_file]
+            }
+            .set { ch_regions_with_depths }
 
-    //
-    // MODULE: MultiQC
-    //
-    ch_multiqc_config        = channel.fromPath(
-        "$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-    ch_multiqc_custom_config = params.multiqc_config ?
-        channel.fromPath(params.multiqc_config, checkIfExists: true) :
-        channel.empty()
-    ch_multiqc_logo          = params.multiqc_logo ?
-        channel.fromPath(params.multiqc_logo, checkIfExists: true) :
-        channel.empty()
+        GUTSMASH_PERBIN ( ch_regions_with_depths )
+        ch_versions = ch_versions.mix(GUTSMASH_PERBIN.out.versions)
 
-    summary_params      = paramsSummaryMap(
-        workflow, parameters_schema: "nextflow_schema.json")
-    ch_workflow_summary = channel.value(paramsSummaryMultiqc(summary_params))
-
-    ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
-        file(params.multiqc_methods_description, checkIfExists: true) :
-        file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
-    ch_methods_description                = channel.value(
-        methodsDescriptionText(ch_multiqc_custom_methods_description))
-
-    ch_multiqc_files = ch_multiqc_files.mix(
-        ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
-    ch_multiqc_files = ch_multiqc_files.mix(
-        ch_methods_description.collectFile(
-            name: 'methods_description_mqc.yaml',
-            sort: true
+        GUTSMASH_MERGE ( 
+            GUTSMASH_PROCESS.out.tsv.map { meta, file -> file }.collect(), 
+            GUTSMASH_PERBIN.out.pathways.collect() 
         )
-    )
+    }
 
-    MULTIQC (
-        ch_multiqc_files.collect(),
-        ch_multiqc_config.toList(),
-        ch_multiqc_custom_config.toList(),
-        ch_multiqc_logo.toList()
-    )
+    if(!params.skip_dram){
+        // 
+        // MODULE: DRAM for annotation
+        // 
+        if (!params.dram_db) {
+            DRAM_DB ()
+            dram_db = DRAM_DB.out.databases
+            ch_versions = ch_versions.mix(DRAM_DB.out.versions)
+        } else {
+            dram_db = params.dram_db
+        }
+        DRAM_ANNOTATE ( ch_samplesheet, dram_db )
+        ch_versions = ch_versions.mix(DRAM_ANNOTATE.out.versions)
+    }
+
 
     emit:
-    multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 }
 

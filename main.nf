@@ -16,9 +16,9 @@ nextflow.enable.dsl = 2
 */
 
 include { METABO  } from './workflows/metabo'
-include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_gapseqflow_pipeline'
-include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_gapseqflow_pipeline'
-include { getGenomeAttribute      } from './subworkflows/local/utils_gapseqflow_pipeline'
+include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_metaboflow_pipeline'
+include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_metaboflow_pipeline'
+include { getGenomeAttribute      } from './subworkflows/local/utils_metaboflow_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,6 +39,7 @@ workflow METABOFLOW {
 
     take:
     samplesheet // channel: samplesheet read in from --input
+    depths // channel: depths read
 
     main:
 
@@ -46,11 +47,9 @@ workflow METABOFLOW {
     // WORKFLOW: Run pipeline
     //
     METABO (
-        samplesheet
+        samplesheet,
+        depths
     )
-
-    emit:
-    multiqc_report = METABO.out.multiqc_report // channel: /path/to/multiqc_report.html
 
 }
 /*
@@ -73,14 +72,16 @@ workflow {
         params.monochrome_logs,
         args,
         params.outdir,
-        params.input
+        params.input,
+        params.depths
     )
 
     //
     // WORKFLOW: Run main workflow
     //
     METABOFLOW (
-        PIPELINE_INITIALISATION.out.samplesheet
+        PIPELINE_INITIALISATION.out.samplesheet,
+        PIPELINE_INITIALISATION.out.depths
     )
 
     //
@@ -92,8 +93,7 @@ workflow {
         params.plaintext_email,
         params.outdir,
         params.monochrome_logs,
-        params.hook_url,
-        METABOFLOW.out.multiqc_report
+        params.hook_url
     )
 }
 

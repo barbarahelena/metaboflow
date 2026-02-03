@@ -1,24 +1,12 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/barbarahelena/gapseqflow/master/assets/schema_input.json",
-    "title": "gapseqflow pipeline - params.input schema",
-    "description": "Schema for the file provided with params.input",
+    "$id": "https://raw.githubusercontent.com/barbarahelena/metaboflow/master/assets/schema_bins.json",
+    "title": "metaboflow pipeline - bins input schema",
+    "description": "Schema for the bins samplesheet",
     "type": "array",
     "items": {
         "type": "object",
         "properties": {
-            "subject_id": {
-                "type": "string",
-                "pattern": "^\\S+$",
-                "errorMessage": "Subject ID must be provided and cannot contain spaces",
-                "meta": ["id"]
-            },
-            "sample_ids": {
-                "type": "string",
-                "pattern": "^[^,]+$",
-                "errorMessage": "Sample IDs must be provided and cannot contain commas",
-                "meta": ["sample_ids"]
-            },
             "bin_id": {
                 "type": "string",
                 "pattern": "^\\S+$",
@@ -44,6 +32,6 @@
                 "meta": ["checkm_contamination"]
             }
         },
-        "required": ["subject_id", "sample_ids", "bin_id", "bin_fasta", "checkm_completeness", "checkm_contamination"]
+        "required": ["bin_id", "bin_fasta", "checkm_completeness", "checkm_contamination"]
     }
 }

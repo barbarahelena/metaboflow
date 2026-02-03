@@ -1,4 +1,4 @@
-# gapseqflow: Citations
+# metaboflow: Citations
 
 ## [nf-core](https://pubmed.ncbi.nlm.nih.gov/32055031/)
 
@@ -10,13 +10,40 @@
 
 ## Pipeline tools
 
-- [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+- [DRAM](https://pubmed.ncbi.nlm.nih.gov/32766834/)
 
-  > Andrews, S. (2010). FastQC: A Quality Control Tool for High Throughput Sequence Data [Online].
+  > Shaffer M, Borton MA, McGivern BB, et al. DRAM for distilling microbial metabolism to automate the curation of microbiome function. Nucleic Acids Research. 2020 Sep 4;48(16):8883-8900. doi: 10.1093/nar/gkaa621. PubMed PMID: 32766834; PubMed Central PMCID: PMC7498341.
 
-- [MultiQC](https://pubmed.ncbi.nlm.nih.gov/27312411/)
+- [gapseq](https://pubmed.ncbi.nlm.nih.gov/33663506/)
 
-  > Ewels P, Magnusson M, Lundin S, Käller M. MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics. 2016 Oct 1;32(19):3047-8. doi: 10.1093/bioinformatics/btw354. Epub 2016 Jun 16. PubMed PMID: 27312411; PubMed Central PMCID: PMC5039924.
+  > Zimmermann J, Kaleta C, Waschina S. gapseq: informed prediction of bacterial metabolic pathways and reconstruction of accurate metabolic models. Genome Biology. 2021 Mar 3;22(1):81. doi: 10.1186/s13059-021-02295-1. PubMed PMID: 33663506; PubMed Central PMCID: PMC7934486.
+
+- [gutSMASH](https://pubmed.ncbi.nlm.nih.gov/35288716/)
+
+  > Kautsar SA, Blin K, Shaw S, et al. gutSMASH predicts specialized primary metabolic pathways from the gut microbiome. Nature Chemical Biology. 2022 Jul;18(7):707-714. doi: 10.1038/s41589-022-00974-2. PubMed PMID: 35288716; PubMed Central PMCID: PMC9259480.
+
+## Software packaging/containerisation tools
+
+- [Anaconda](https://anaconda.com)
+
+  > Anaconda Software Distribution. Computer software. Vers. 2-2.4.0. Anaconda, Nov. 2016. Web.
+
+- [Bioconda](https://pubmed.ncbi.nlm.nih.gov/29967506/)
+
+  > Grüning B, Dale R, Sjödin A, Chapman BA, Rowe J, Tomkins-Tinch CH, Valieris R, Köster J; Bioconda Team. Bioconda: sustainable and comprehensive software distribution for the life sciences. Nat Methods. 2018 Jul;15(7):475-476. doi: 10.1038/s41592-018-0046-7. PubMed PMID: 29967506.
+
+- [BioContainers](https://pubmed.ncbi.nlm.nih.gov/28379341/)
+
+  > da Veiga Leprevost F, Grüning B, Aflitos SA, Röst HL, Uszkoreit J, Barsnes H, Vaudel M, Moreno P, Gatto L, Weber J, Bai M, Jimenez RC, Sachsenberg T, Pfeuffer J, Alvarez RV, Griss J, Nesvizhskii AI, Perez-Riverol Y. BioContainers: an open-source and community-driven framework for software standardization. Bioinformatics. 2017 Aug 15;33(16):2580-2582. doi: 10.1093/bioinformatics/btx192. PubMed PMID: 28379341; PubMed Central PMCID: PMC5870671.
+
+- [Docker](https://dl.acm.org/doi/10.5555/2600239.2600241)
+
+  > Merkel, D. (2014). Docker: lightweight linux containers for consistent development and deployment. Linux Journal, 2014(239), 2. doi: 10.5555/2600239.2600241.
+
+- [Singularity](https://pubmed.ncbi.nlm.nih.gov/28494014/)
+
+  > Kurtzer GM, Sochat V, Bauer MW. Singularity: Scientific containers for mobility of compute. PLoS One. 2017 May 11;12(5):e0177459. doi: 10.1371/journal.pone.0177459. eCollection 2017. PubMed PMID: 28494014; PubMed
+
 
 ## Software packaging/containerisation tools
 

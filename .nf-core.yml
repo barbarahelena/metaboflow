@@ -2,6 +2,6 @@ nf_core_version: 2.14.1
 repository_type: pipeline
 template:
   author: barbarahelena
-  description: A workflow for Gapseq
-  name: gapseqflow
+  description: A workflow for metabolic pathway prediction in microbial communities
+  name: metaboflow
   version: 0.1.0

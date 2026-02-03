@@ -4,26 +4,25 @@ process DRAM_ANNOTATE {
 
     conda "bioconda::dram=1.5.0"
     container "biocontainers/dram:1.5.0--pyhdfd78af_0"
-    // install databases!
 
     input:
     tuple val(meta), path(bin)
     path(db)
 
     output:
-    tuple val(meta), path("*/annotations.tsv")       , emit: annotations
-    tuple val(meta), path("*/genome_stats.tsv") , emit: genome_summary
-    tuple val(meta), path("*/metabolism_summary.xlsx"), emit: functional_summary
-    tuple val(meta), path("*/product.tsv")  , emit: product_summary, optional: true
-    tuple val(meta), path("*/product.html")   , emit: product_html, optional: true
-    path "versions.yml"                                         , emit: versions
+    tuple val(meta), path("${meta.bin_id}/annotations.tsv")         , emit: annotations
+    tuple val(meta), path("${meta.bin_id}/genome_stats.tsv")        , emit: genome_summary
+    tuple val(meta), path("${meta.bin_id}/metabolism_summary.xlsx") , emit: functional_summary
+    tuple val(meta), path("${meta.bin_id}/product.tsv")             , emit: product_summary, optional: true
+    tuple val(meta), path("${meta.bin_id}/product.html")            , emit: product_html, optional: true
+    path "versions.yml"                                             , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def bin_id = meta.bin_id
 
     """
     # Create DRAM config file in JSON format
@@ -80,17 +79,17 @@ process DRAM_ANNOTATE {
     # Run DRAM annotation with JSON config
     DRAM.py annotate \\
         -i ${bin} \\
-        -o ${prefix} \\
+        -o ${bin_id} \\
         --threads ${task.cpus} \\
         --config_loc DRAM.config \\
         ${args}
 
     # Run DRAM distill with JSON config
     DRAM.py distill \\
-        -i ${prefix}/annotations.tsv \\
-        -o ${prefix} \\
+        -i ${bin_id}/annotations.tsv \\
+        -o ${bin_id} \\
         --config_loc DRAM.config \\
-        --trna_path ${prefix}/trnas.tsv
+        --trna_path ${bin_id}/trnas.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -99,21 +98,21 @@ process DRAM_ANNOTATE {
     """
 
     stub:
-    def prefix = task.ext.prefix ?: "${meta.id}"  // Changed this line
+    def bin_id = meta.bin_id
 
     """
-    mkdir -p dram_output_${prefix}
-    touch dram_output_${prefix}/annotations.tsv
-    touch dram_output_${prefix}/genes.faa
-    touch dram_output_${prefix}/genes.fna
-    touch dram_output_${prefix}/genes.gff
-    touch dram_output_${prefix}/scaffolds.fna
-    touch dram_output_${prefix}/trnas.tsv
-    touch dram_output_${prefix}/rrnas.tsv
-    touch dram_output_${prefix}/genome_summaries.tsv
-    touch dram_output_${prefix}/metabolism_summary.tsv
-    touch dram_output_${prefix}/product_summary.tsv
-    touch dram_output_${prefix}/module_summary.tsv
+    mkdir -p ${bin_id}
+    touch ${bin_id}/annotations.tsv
+    touch ${bin_id}/genes.faa
+    touch ${bin_id}/genes.fna
+    touch ${bin_id}/genes.gff
+    touch ${bin_id}/scaffolds.fna
+    touch ${bin_id}/trnas.tsv
+    touch ${bin_id}/rrnas.tsv
+    touch ${bin_id}/genome_stats.tsv
+    touch ${bin_id}/metabolism_summary.xlsx
+    touch ${bin_id}/product.tsv
+    touch ${bin_id}/product.html
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
