@@ -58,29 +58,37 @@ workflow METABO {
             .map { meta, file -> [meta.bin_id, meta, file] }
             .set { ch_regions_keyed }
 
-        // Key and group depths by bin_id
-        ch_depths
-            .map { it[0] }  // ← FIX: Extract meta from wrapping list
-            .map { meta -> [meta.bin_id, meta] }
-            .groupTuple()
-            .set { ch_depths_grouped }
+        if (params.depths) {
+            // Key and group depths by bin_id
+            ch_depths
+                .map { it[0] }  // ← FIX: Extract meta from wrapping list
+                .map { meta -> [meta.bin_id, meta] }
+                .groupTuple()
+                .set { ch_depths_grouped }
 
-        // Join regions with depths by bin_id
-        ch_regions_keyed
-            .join(ch_depths_grouped, by: 0)
-            .map { bin_id, regions_meta, regions_file, depth_list ->
-                def combined_meta = regions_meta + [depths: depth_list]
-                [combined_meta, depth_list, regions_file]
-            }
-            .set { ch_regions_with_depths }
+            // Join regions with depths by bin_id
+            ch_regions_keyed
+                .join(ch_depths_grouped, by: 0)
+                .map { bin_id, regions_meta, regions_file, depth_list ->
+                    def combined_meta = regions_meta + [depths: depth_list]
+                    [combined_meta, depth_list, regions_file]
+                }
+                .set { ch_regions_with_depths }
 
-        GUTSMASH_PERBIN ( ch_regions_with_depths )
-        ch_versions = ch_versions.mix(GUTSMASH_PERBIN.out.versions)
+            GUTSMASH_PERBIN ( ch_regions_with_depths )
+            ch_versions = ch_versions.mix(GUTSMASH_PERBIN.out.versions)
 
-        GUTSMASH_MERGE ( 
-            GUTSMASH_PROCESS.out.tsv.map { meta, file -> file }.collect(), 
-            GUTSMASH_PERBIN.out.pathways.collect() 
-        )
+            GUTSMASH_MERGE ( 
+                GUTSMASH_PROCESS.out.tsv.map { meta, file -> file }.collect(), 
+                GUTSMASH_PERBIN.out.pathways.collect() 
+            )
+        } else {
+            log.info "INFO: No depths file provided - skipping GUTSMASH_PERBIN and GUTSMASH_MERGE (population pathway analysis)"
+            GUTSMASH_MERGE (
+                GUTSMASH_PROCESS.out.tsv.map { meta, file -> file }.collect(),
+                Channel.empty().collect()
+            )
+        }
     }
 
     if(!params.skip_dram){

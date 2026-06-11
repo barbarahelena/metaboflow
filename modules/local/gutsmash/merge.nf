@@ -31,24 +31,27 @@ process GUTSMASH_MERGE {
     
     print(f"Merged {len(region_files)} region files into all_clusters.tsv")
 
-    # Merge all per-bin population pathway TSVs
+    # Merge all per-bin population pathway TSVs (only if depths were provided)
     pathway_files = glob.glob("*_population_pathways.tsv")
-    pathway_dfs = [pd.read_csv(f, sep="\\t") for f in pathway_files]
-    
-    # Concatenate and aggregate across bins
-    all_pathways = pd.concat(pathway_dfs, ignore_index=True)
-    
-    # Sum depths per sample x product across all bins
-    pop = (
-        all_pathways
-        .groupby("sample")
-        .sum(numeric_only=True)
-        .reset_index()
-    )
-    
-    pop.to_csv("population_pathways.tsv", sep="\\t", index=False)
-    
-    print(f"Merged {len(pathway_files)} pathway files into population_pathways.tsv")
+    if pathway_files:
+        pathway_dfs = [pd.read_csv(f, sep="\\t") for f in pathway_files]
+        
+        # Concatenate and aggregate across bins
+        all_pathways = pd.concat(pathway_dfs, ignore_index=True)
+        
+        # Sum depths per sample x product across all bins
+        pop = (
+            all_pathways
+            .groupby("sample")
+            .sum(numeric_only=True)
+            .reset_index()
+        )
+        
+        pop.to_csv("population_pathways.tsv", sep="\\t", index=False)
+        print(f"Merged {len(pathway_files)} pathway files into population_pathways.tsv")
+    else:
+        print("No depth information provided - skipping population pathway analysis")
+        pd.DataFrame().to_csv("population_pathways.tsv", sep="\\t", index=False)
 
     # Write versions.yml
     with open("versions.yml", "w") as v:

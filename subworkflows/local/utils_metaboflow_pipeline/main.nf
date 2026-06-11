@@ -86,11 +86,15 @@ workflow PIPELINE_INITIALISATION {
         .groupTuple()
         .set { ch_samplesheet }
 
-    Channel
-        .fromSamplesheet('depths')
-        .groupTuple()
-        .set { ch_depths }
-        // Output: [ [bin_id: 'bin001', sample: 'sample1', depth: 45.3] ]
+    if (params.depths) {
+        Channel
+            .fromSamplesheet('depths')
+            .groupTuple()
+            .set { ch_depths }
+            // Output: [ [bin_id: 'bin001', sample: 'sample1', depth: 45.3] ]
+    } else {
+        ch_depths = Channel.empty()
+    }
 
     emit:
     samplesheet = ch_samplesheet
