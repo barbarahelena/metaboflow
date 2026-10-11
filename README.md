@@ -16,26 +16,37 @@
 
 **metaboflow** is a bioinformatics pipeline that performs metabolic pathway profiling and functional annotation of microbial genomes and metagenome-assembled genomes (MAGs). It is built using [Nextflow](https://www.nextflow.io/).
 
-1. [`Gapseq`](https://gapseq.readthedocs.io/en/latest/) pipeline for metabolic pathway profiling
-2. [`GutSMASH`](https://github.com/victoriapascal/gutsmash/) for metabolic gene cluster detection
-3. [`DRAM`](https://github.com/WrightonLabCSU/DRAM) for functional annotation of metagenomes
+1. [`gutSMASH`](https://github.com/victoriapascal/gutsmash/) — Metabolic gene cluster detection *(enabled by default)*
+2. [`gapseq`](https://gapseq.readthedocs.io/en/latest/) — Metabolic pathway prediction *(disabled by default)*
+3. [`DRAM`](https://github.com/WrightonLabCSU/DRAM) — Functional annotation of metagenomes *(disabled by default)*
 
 ## Usage
 
 > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
 
-I recommend to perform assembly of metagenomic data and binning prior to running metaboflow. You can use e.g. the [nf-core/mag](https://nf-co.re/mag) pipeline for this purpose. The resulting bins (fasta files) can then be used as input for metaboflow.
+We recommend assembling metagenomic data and binning prior to running metaboflow. You can use e.g. the [nf-core/mag](https://nf-co.re/mag) pipeline for this. The resulting bins (FASTA files) can then be used as input for metaboflow.
 
-First, prepare a samplesheet with your input data that looks as follows:
+First, prepare a samplesheet with your input data:
 
 `samplesheet.csv`:
 
 ```csv
 bin_id,bin_fasta,checkm_completeness,checkm_contamination
 bin1,/path/to/bin1.fasta,95.0,2.0
+bin2,/path/to/bin2.fa,87.3,4.5
 ```
-Each row represents a bin.
+
+Each row represents one bin. You can optionally provide a depths file to enable population-level pathway analysis in gutSMASH:
+
+`depths.csv`:
+
+```csv
+bin_id,sample,depth
+bin1,sample1,45.3
+bin1,sample2,28.7
+bin2,sample1,12.5
+```
 
 Now, you can run the pipeline using:
 
@@ -43,7 +54,18 @@ Now, you can run the pipeline using:
 nextflow run barbarahelena/metaboflow \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
-   --gtdbtk_database </path/to/database> \
+   --outdir <OUTDIR>
+```
+
+To also include population-level pathway analysis and all annotation tools:
+
+```bash
+nextflow run barbarahelena/metaboflow \
+   -profile <docker/singularity/.../institute> \
+   --input samplesheet.csv \
+   --depths depths.csv \
+   --skip_gapseq false \
+   --skip_dram false \
    --outdir <OUTDIR>
 ```
 

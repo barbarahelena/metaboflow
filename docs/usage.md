@@ -32,18 +32,18 @@ bin003,/path/to/bin003.fna,92.1,1.8
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
-## Depth information input
+## Depth information input (optional)
 
-To generate population-level metabolic profiles, you need to provide depth information for each bin across samples. This is specified using the `--depths` parameter.
+Depth information can optionally be provided to generate population-level metabolic pathway profiles in the gutSMASH step. When omitted, gutSMASH still runs and produces cluster annotations, but the per-sample population pathway analysis (`GUTSMASH_PERBIN` and the population matrix in `GUTSMASH_MERGE`) is skipped.
 
 ```bash
 --depths '[path to depths file]'
 ```
 
-The depths file should be a comma-separated file with the following structure:
+The depths file must be a comma-separated file with the following structure:
 
 ```csv title="depths.csv"
-bin_id,sample_id,depth
+bin_id,sample,depth
 bin001,sample1,45.3
 bin001,sample2,28.7
 bin001,sample3,52.1
@@ -52,15 +52,26 @@ bin002,sample2,18.9
 bin002,sample3,22.4
 ```
 
-| Column      | Description                                                                      |
-| ----------- | -------------------------------------------------------------------------------- |
-| `bin_id`    | Bin identifier matching those in the main samplesheet.                           |
-| `sample_id` | Sample identifier. Cannot contain spaces.                                        |
-| `depth`     | Sequencing depth or abundance value for this bin in this sample (numeric value). |
+| Column   | Description                                                                      |
+| -------- | -------------------------------------------------------------------------------- |
+| `bin_id` | Bin identifier matching those in the main samplesheet.                           |
+| `sample` | Sample identifier. Cannot contain spaces.                                        |
+| `depth`  | Sequencing depth or abundance value for this bin in this sample (numeric value, ≥0). |
+
+Each bin can have entries for one or more samples. Example depth files are provided in [`assets/test_depths.csv`](../assets/test_depths.csv) and [`assets/fulltest_depths.csv`](../assets/fulltest_depths.csv).
 
 ## Running the pipeline
 
-The typical command for running the pipeline is as follows:
+The minimal command for running the pipeline is as follows:
+
+```bash
+nextflow run barbarahelena/metaboflow \
+    --input ./samplesheet.csv \
+    --outdir ./results \
+    -profile docker
+```
+
+To include population-level pathway analysis, also provide a depths file:
 
 ```bash
 nextflow run barbarahelena/metaboflow \
@@ -72,7 +83,9 @@ nextflow run barbarahelena/metaboflow \
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
 
-Note that the pipeline will create the following files in your working directory:
+> **Note:** By default, only gutSMASH is enabled. gapseq and DRAM are skipped by default (see [Pipeline options](#pipeline-options) below).
+
+The pipeline will create the following files in your working directory:
 
 ```bash
 work                # Directory containing the nextflow working files
@@ -101,8 +114,10 @@ with `params.yaml` containing:
 
 ```yaml
 input: './samplesheet.csv'
-depths: './depths.csv'
+depths: './depths.csv'   # optional
 outdir: './results/'
+skip_gapseq: false
+skip_dram: false
 ```
 
 You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-co.re/launch).
@@ -111,12 +126,32 @@ You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-c
 
 ### Annotation tools
 
-By default, the pipeline runs all three annotation tools: DRAM, gapseq, and gutSMASH. You can control which tools to run:
+The pipeline supports three annotation tools. Their default enabled/disabled status is:
+
+| Tool      | Default  | Flag to change          |
+| --------- | -------- | ----------------------- |
+| gutSMASH  | enabled  | `--skip_gutsmash`       |
+| gapseq    | disabled | `--skip_gapseq false`   |
+| DRAM      | disabled | `--skip_dram false`     |
+
+You can selectively enable or disable tools:
 
 ```bash
---skip_dram          # Skip DRAM annotation
---skip_gapseq        # Skip gapseq annotation
---skip_gutsmash      # Skip gutSMASH annotation
+# Run all three tools
+nextflow run barbarahelena/metaboflow \
+    --input ./samplesheet.csv \
+    --outdir ./results \
+    --skip_gapseq false \
+    --skip_dram false \
+    -profile docker
+
+# Run only gapseq (skip gutSMASH and DRAM)
+nextflow run barbarahelena/metaboflow \
+    --input ./samplesheet.csv \
+    --outdir ./results \
+    --skip_gutsmash \
+    --skip_gapseq false \
+    -profile docker
 ```
 
 ### DRAM database
@@ -127,7 +162,7 @@ If you have a pre-downloaded DRAM database, you can specify its location:
 --dram_db '/path/to/dram/database'
 ```
 
-If not specified, the pipeline will download and prepare the DRAM database automatically (requires significant time and storage space).
+If not specified, the pipeline will download and prepare the DRAM database automatically using `DRAM-setup.py`. This requires significant time (several hours) and disk space (~60 GB). It is strongly recommended to pre-download the database and reuse it across runs.
 
 ### Updating the pipeline
 
